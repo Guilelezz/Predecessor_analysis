@@ -1,0 +1,27 @@
+{
+    "ACM": {
+        "kda": 2.08,
+        "average_damage_to_heroes": 543.66,
+        "average_gold_earned": 393.26
+    },
+    "Ragnarok": {
+        "kda": 1.61,
+        "average_damage_to_heroes": 713.94,
+        "average_gold_earned": 491.43
+    },
+    "onfof": {
+        "kda": 1.6,
+        "average_damage_to_heroes": 523.99,
+        "average_gold_earned": 409.21
+    },
+    "SSScie": {
+        "kda": 0.8,
+        "average_damage_to_heroes": 140.54,
+        "average_gold_earned": 316.93
+    },
+    "Night": {
+        "kda": 1.4,
+        "average_damage_to_heroes": 874.7,
+        "average_gold_earned": 462.51
+    }
+}
