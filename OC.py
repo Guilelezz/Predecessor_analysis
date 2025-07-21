@@ -511,7 +511,7 @@ def team_gold_by_role(Team, role, enemy = None):
         print("\n")
 
 #Gold leads throughout certain points of a game
-def team_gold_leads(Team, role, enemy = None):
+def team_gold_leads_tf(Team, role, enemy = None):
     player_list = {}
     print("team = " +str(Team) +str(" role = ") +str(role))
     for i in range(len(Team)):
@@ -555,6 +555,46 @@ def team_gold_leads(Team, role, enemy = None):
         print("Lead at End: " +str(100*leadEnd[k]/games[k]))
         print("\n")
 
+#Gold leads throughout certain points of a game
+def team_gold_leads(Team, role, enemy = None):
+    player_list = {}
+    print("team = " +str(Team) +str(" role = ") +str(role))
+    for i in range(len(Team)):
+        if enemy is not None:
+            player_list[Team[i]] = get_gold(Team[i], role[i], enemy)
+        else:
+            player_list[Team[i]] = get_gold(Team[i], role[i])
+
+
+    # print(player_list)
+
+    games = [0]*len(Team)
+    lead5 = [0]*len(Team)
+    lead10 = [0]*len(Team)
+    lead15 = [0]*len(Team)
+    lead20 = [0]*len(Team)
+    leadEnd = [0]*len(Team)
+    wins = [0]*len(Team)
+
+    for k in range(len(Team)):
+        games[k] = len(player_list[Team[k]])
+        for i in range(len(player_list[Team[k]])):
+            # if player_list[Team[k]][i+1][0] > 0 :
+            lead5[k] += player_list[Team[k]][i+1][0]
+            lead10[k] += player_list[Team[k]][i+1][1]
+            lead15[k] += player_list[Team[k]][i+1][2]
+            lead20[k] += player_list[Team[k]][i+1][3]
+            leadEnd[k] += player_list[Team[k]][i+1][4]
+            if player_list[Team[k]][i+1][5]:
+                wins[k] += 1
+            
+        print("Player: " +str(Team[k])+str(", played: ")+str(games[k])+str(", wins: ")+str(wins[k]))
+        print("Lead at 5: " +str(lead5[k]/games[k]))
+        print("Lead at 10: " +str(lead10[k]/games[k]))
+        print("Lead at 15: " +str(lead15[k]/games[k]))
+        print("Lead at 20: " +str(lead20[k]/games[k]))
+        print("Lead at End: " +str(leadEnd[k]/games[k]))
+        print("\n")
 
 # Team = ["Bondrewd", "Ven", ]
 # Role = ["offlane", "jungle"]
