@@ -36,6 +36,6 @@ def main():
     # obejctivePrio.objectivePrio(df_file)
 
     # for player in Obscure:
-    #     print(player + str(": ") +str(OC.get_player_hero_stats(player)))
+        # print(player + str(": ") +str(OC.get_player_hero_stats(player)))
     
 main()

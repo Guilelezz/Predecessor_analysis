@@ -32,6 +32,17 @@ def get_hero_stats(hero):
             print(heroes[i])
             break
 
+def get_list_of_hero_ids():
+    response = requests.get("https://omeda.city/dashboard/hero_statistics.json")
+
+    heroes = response.json()['hero_statistics']
+    overview = {}
+
+    for hero in heroes:
+        overview[hero['hero_id']] = hero['display_name']
+
+    return overview
+
 #Returns Json of basic player info such as rank and MMR
 def get_player_basic(playerName):
     playerId = get_player_id(playerName)
@@ -95,7 +106,18 @@ def get_player_stats(playerName):
 def get_player_hero_stats(playerName):
     playerId = get_player_id(playerName)
     
-    url = "https://omeda.city/players/"+str(playerId)+str("/hero_statistics.json?time_frame=3M")
+    url = "https://omeda.city/players/"+str(playerId)+str("/hero_statistics.json?time_frame=1M")
+    response = requests.get(url)
+    try:
+        player = response.json()["hero_statistics"]
+    except:
+        return 1
+    return most_played(player)
+
+def get_player_hero_stats_custom(playerName):
+    playerId = get_player_id(playerName)
+    
+    url = "https://omeda.city/players/"+str(playerId)+str("/hero_statistics.json?filter[game_mode]=custom&time_frame=1M&filter[game_mode]=custom&per_page=100")
     response = requests.get(url)
     try:
         player = response.json()["hero_statistics"]
@@ -322,11 +344,11 @@ def customgames_data_extractor(Team):
         else:
             lteam_stats[target_player] = {"error": "No games found"}
 
-    filename = f"wteam_stats.json"
+    filename = f"temp_files/wteam_stats.json"
     with open(filename, "w") as outfile:
         json.dump(wteam_stats, outfile, indent=4)
 
-    filename = f"lteam_stats.json"
+    filename = f"temp_files/lteam_stats.json"
     with open(filename, "w") as outfile:
         json.dump(lteam_stats, outfile, indent=4)
 
@@ -596,6 +618,154 @@ def team_gold_leads(Team, role, enemy = None):
         print("Lead at End: " +str(leadEnd[k]/games[k]))
         print("\n")
 
+def LAN_team_stats(Team, enemy = None):
+    team_players = [Team[0], Team[1], Team[2],Team[3],Team[4]]
+
+    # Initialize the team stats dictionary
+    wteam_stats = {}
+    lteam_stats = {}
+    team_stats = {}
+    hero_stats = {}
+    wr_hero_stats = {}
+
+    for target_player in team_players:
+        data = get_data(target_player)
+
+        wtotal_kills = wtotal_deaths = wtotal_assists = 0
+        wtotal_damage_to_heroes = wtotal_gold = 0
+        ltotal_kills = ltotal_deaths = ltotal_assists = 0
+        ltotal_damage_to_heroes = ltotal_gold = 0
+        games = games_won = games_lost = wgame_length = lgame_length = 0
+        winning_team = ""
+        hero = [0]*75
+        wr_hero = [0]*75
+
+        for match in data["Custom games"]["matches"]:
+            winning_team = match["winning_team"]
+            duration = match["game_duration"]
+            for player in match["players"]:
+                if player["display_name"] == target_player:
+                    games += 1
+                    if player["hero_id"] > 75:
+                        hero_id = 74
+                    else:
+                        hero_id = player["hero_id"]
+                    hero[hero_id] += 1
+
+                    if winning_team == player["team"]:
+                        wr_hero[hero_id] += 1
+                        wgame_length += duration
+                        games_won += 1
+                        wtotal_kills += player["kills"]
+                        wtotal_deaths += player["deaths"]
+                        wtotal_assists += player["assists"]
+                        wtotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
+                        wtotal_gold += player["gold_earned"]  
+                    else:
+                        lgame_length += duration
+                        games_lost += 1
+                        ltotal_kills += player["kills"]
+                        ltotal_deaths += player["deaths"]
+                        ltotal_assists += player["assists"]
+                        ltotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
+                        ltotal_gold += player["gold_earned"] 
+
+        if games_won + games_lost > 0:
+            avg_data = {
+                "games": games,
+                "win_rate" : (100*games_won)/games,
+                "kda": round((wtotal_kills + ltotal_kills + wtotal_assists + ltotal_deaths) / (wtotal_deaths + ltotal_deaths), 2),
+                "average_damage_to_heroes": round(((wtotal_damage_to_heroes + ltotal_damage_to_heroes) / games) / ((wgame_length + lgame_length)/(60*games)), 2),
+                "average_gold_earned": round(((wtotal_gold + ltotal_gold) / games) / ((wgame_length+lgame_length)/(60*games)), 2)
+            }
+            team_stats[target_player] = avg_data
+        else:
+            team_stats[target_player] = {"error": "No games found"}
+
+
+        if games_won > 0:
+            wavg_data = {
+                "wins": games_won,
+                "kda": round((wtotal_kills + wtotal_assists) / wtotal_deaths, 2),
+                "average_damage_to_heroes": round((wtotal_damage_to_heroes / games_won) / (wgame_length/(60*games_won)), 2),
+                "average_gold_earned": round((wtotal_gold / games_won) / (wgame_length/(60*games_won)), 2)
+            }
+            wteam_stats[target_player] = wavg_data
+        else:
+            wteam_stats[target_player] = {"error": "No games found"}
+
+        if games_lost > 0:
+            lavg_data = {
+                "losses": games_lost,
+                "kda": round((ltotal_kills + ltotal_assists) / ltotal_deaths, 2),
+                "average_damage_to_heroes": round((ltotal_damage_to_heroes / games_lost) / (lgame_length/(60*games_lost)), 2),
+                "average_gold_earned": round((ltotal_gold / games_lost) / (lgame_length/(60*games_lost)), 2)
+            }
+            lteam_stats[target_player] = lavg_data
+        else:
+            lteam_stats[target_player] = {"error": "No games found"}
+
+        #Note down most played heroes by number indency
+        hero_stats[target_player] = hero
+        wr_hero_stats[target_player] = wr_hero
+
+    hero_list = get_list_of_hero_ids()
+    most_played_heroes = {}
+
+    for player in hero_stats:
+        top_n = 5
+        print(wr_hero_stats[player])
+        # Sort by value descending, keeping index
+        sorted_indices = sorted(enumerate(hero_stats[player]), key=lambda x: x[1], reverse=True)
+
+        # Extract the top N indices
+        largest_indices = [index for index, value in sorted_indices[:top_n]]
+
+        # if hero_list[largest_indices[0]] == 74:
+        #     hero_list[largest_indices[0]] = 10000000001
+
+        if player not in most_played_heroes:
+            most_played_heroes[player] = {}
+
+        for i in range(len(largest_indices)):
+            key = largest_indices[i]
+            if largest_indices[i] == 74:
+                key = 10000000001
+            most_played_heroes[player][hero_list[key]] = [hero_stats[player][largest_indices[i]]]
+            win_rate_by_hero = (100*wr_hero_stats[player][largest_indices[i]])/hero_stats[player][largest_indices[i]]
+            # most_played_heroes[player][hero_list[key]] = (100*wr_hero_stats[player][largest_indices])/hero_stats[player][largest_indices[i]] 
+            most_played_heroes[player][hero_list[key]].append(win_rate_by_hero)
+
+    filename = f"temp_files/team_stats.json"
+    with open(filename, "w") as outfile:
+        json.dump(team_stats, outfile, indent=4)
+
+    filename = f"temp_files/wteam_stats.json"
+    with open(filename, "w") as outfile:
+        json.dump(wteam_stats, outfile, indent=4)
+
+    filename = f"temp_files/lteam_stats.json"
+    with open(filename, "w") as outfile:
+        json.dump(lteam_stats, outfile, indent=4)
+
+    combined_data = {
+        "team_stats": team_stats,
+        "wins_team_stats": wteam_stats,
+        "losses_team_stats": lteam_stats,
+        "most_played_heroes": most_played_heroes
+    }
+    filename = f"temp_files/combined_team_stats.json"
+    with open(filename, "w") as outfile:
+        json.dump(combined_data, outfile, indent=4)
+
+    return team_stats, wteam_stats, lteam_stats
+
+    
+
+
+# Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
+# LAN_team_stats(Immune)
+
 # Team = ["Bondrewd", "Ven", ]
 # Role = ["offlane", "jungle"]
 # Team = ["Brandonite"]
@@ -607,15 +777,15 @@ def team_gold_leads(Team, role, enemy = None):
 
 
 
-# data = get_data("Ven")
+# data = get_data("Neft")
 # i = 0
 # for match in data["Custom games"]["matches"]:
 #     winning_team = match["winning_team"]
 #     for player in match["players"]:
-#         if player["display_name"] == "Ven":
+#         if player["display_name"] == "Neft":
 #             if winning_team == player["team"]:
 #                 i += 1
-# data = get_player_matches_custom("Ven")
-# filename = f"test.json"
+# data = get_player_matches_custom("Neft")
+# filename = f"temp_files/test.json"
 # with open(filename, "w") as outfile:
 #     json.dump(data, outfile, indent=4)
