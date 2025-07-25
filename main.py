@@ -1,5 +1,5 @@
 import OC
-import obejctivePrio
+# import obejctivePrio
 import pandas as pd
 
 def main():
@@ -24,6 +24,7 @@ def main():
     EnemiesImmune = ["import", "Ven", "Toasty", "xehe", ]
     EnemiesSin = ["Neft", "Ven", "xehe"]
 
+    OC.LAN_team_stats(Immune)
 
     # OC.team_gold_by_role(Immune,Roles,EnemiesImmune)
     # OC.team_gold_leads(Immune,Roles,EnemiesImmune)

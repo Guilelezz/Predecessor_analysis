@@ -354,9 +354,14 @@ def customgames_data_extractor(Team):
 
     return wteam_stats, lteam_stats
 
-def plot_team_stats(wteam_data,lteam_data):
+def plot_team_stats(team_data, wteam_data,lteam_data):
     # === Extract player names and stat values ===
     players = list(wteam_data.keys())
+
+    kda_values = [team_data[player]["kda"] for player in players]
+    damage_values = [team_data[player]["average_damage_to_heroes"] for player in players]
+    gold_values = [team_data[player]["average_gold_earned"] for player in players]
+
     wkda_values = [wteam_data[player]["kda"] for player in players]
     wdamage_values = [wteam_data[player]["average_damage_to_heroes"] for player in players]
     wgold_values = [wteam_data[player]["average_gold_earned"] for player in players]
@@ -366,24 +371,27 @@ def plot_team_stats(wteam_data,lteam_data):
     lgold_values = [lteam_data[player]["average_gold_earned"] for player in players]
 
     # === Generate the plots ===
-    plot_stat(wkda_values, lkda_values, "KDA per Player", "KDA", players)
-    plot_stat(wdamage_values, ldamage_values, "Average Damage to Heroes per minute", "Damage", players)
-    plot_stat(wgold_values, lgold_values, "Average Gold Earned per minute", "Gold", players)
+    plot_stat(kda_values, wkda_values, lkda_values, "KDA per Player", "KDA", players)
+    plot_stat(damage_values, wdamage_values, ldamage_values, "Average Damage to Heroes per minute", "Damage", players)
+    plot_stat(gold_values, wgold_values, lgold_values, "Average Gold Earned per minute", "Gold", players)
 
-def plot_stat(wvalues, lvalues, title, ylabel, players):
+def plot_stat(values, wvalues, lvalues, title, ylabel, players):
     if not (len(players) == len(wvalues) == len(lvalues)):
         raise ValueError("All input lists must have the same length.")
     
-    x = np.arange(len(players))  # numeric positions for each player
+    x = np.arange(len(players))*1.5  # numeric positions for each player
     bar_width = 0.4
 
     plt.figure(figsize=(10, 6))
 
+    # Plot overall game (middle?)
+    bars = wbars = plt.bar(x , values, width=bar_width, color="#295bc7", edgecolor='black', label='All games')
+
     # Plot wins (shift left)
-    wbars = plt.bar(x - bar_width/2, wvalues, width=bar_width, color='#90ee90', edgecolor='black', label='Wins')
+    wbars = plt.bar(x - bar_width, wvalues, width=bar_width, color='#90ee90', edgecolor='black', label='Wins')
 
     # Plot losses (shift right)
-    lbars = plt.bar(x + bar_width/2, lvalues, width=bar_width, color='#f08080', edgecolor='black', label='Losses')
+    lbars = plt.bar(x + bar_width, lvalues, width=bar_width, color='#f08080', edgecolor='black', label='Losses')
 
     # Titles and labels
     plt.title(title, fontsize=16)
@@ -395,6 +403,10 @@ def plot_stat(wvalues, lvalues, title, ylabel, players):
     plt.legend()
 
     # Add value labels
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval:.2f}', ha='center', va='bottom', fontsize=10)
+
     for bar in wbars:
         yval = bar.get_height()
         plt.text(bar.get_x() + bar.get_width()/2, yval + 0.5, f'{yval:.2f}', ha='center', va='bottom', fontsize=10)
@@ -714,7 +726,7 @@ def LAN_team_stats(Team, enemy = None):
 
     for player in hero_stats:
         top_n = 5
-        print(wr_hero_stats[player])
+
         # Sort by value descending, keeping index
         sorted_indices = sorted(enumerate(hero_stats[player]), key=lambda x: x[1], reverse=True)
 
@@ -736,17 +748,17 @@ def LAN_team_stats(Team, enemy = None):
             # most_played_heroes[player][hero_list[key]] = (100*wr_hero_stats[player][largest_indices])/hero_stats[player][largest_indices[i]] 
             most_played_heroes[player][hero_list[key]].append(win_rate_by_hero)
 
-    filename = f"temp_files/team_stats.json"
-    with open(filename, "w") as outfile:
-        json.dump(team_stats, outfile, indent=4)
+    # filename = f"temp_files/team_stats.json"
+    # with open(filename, "w") as outfile:
+    #     json.dump(team_stats, outfile, indent=4)
 
-    filename = f"temp_files/wteam_stats.json"
-    with open(filename, "w") as outfile:
-        json.dump(wteam_stats, outfile, indent=4)
+    # filename = f"temp_files/wteam_stats.json"
+    # with open(filename, "w") as outfile:
+    #     json.dump(wteam_stats, outfile, indent=4)
 
-    filename = f"temp_files/lteam_stats.json"
-    with open(filename, "w") as outfile:
-        json.dump(lteam_stats, outfile, indent=4)
+    # filename = f"temp_files/lteam_stats.json"
+    # with open(filename, "w") as outfile:
+    #     json.dump(lteam_stats, outfile, indent=4)
 
     combined_data = {
         "team_stats": team_stats,
@@ -758,10 +770,87 @@ def LAN_team_stats(Team, enemy = None):
     with open(filename, "w") as outfile:
         json.dump(combined_data, outfile, indent=4)
 
-    return team_stats, wteam_stats, lteam_stats
+    plot_team_stats(team_stats,wteam_stats,lteam_stats)
 
-    
 
+def get_all_items():
+    response = requests.get("https://omeda.city/items.json")
+    fuckyou = response.json()
+    return fuckyou
+
+def find_item_values():
+    data = get_all_items()
+
+    item_list = {}
+
+    #Value of 1 stat - Basic values
+    stat_values = {
+        "physical_power": 350/8,
+        "magical_power": 350/12,
+        "physical_penetration": 200/4,
+        "magical_penetration": 180/5,
+        "critical_chance": 450/10,
+        "attack_speed": 350/10,
+        "lifesteal": 143.75/5,
+        "magical_lifesteal": 170.83/5,
+        "omnivamp": 325/4,
+        "physical_armor": 350/10,
+        "magical_armor": 350/10,
+        "tenacity": 200/15,
+        "max_health": 350/100,
+        "max_mana": 350/150,
+        "health_regeneration": 350/40,
+        "mana_regeneration": 350/50,
+        "heal_shield_increase": 216.67/5,
+        "ability_haste": 350/5,
+        "movement_speed": 200
+    }
+
+    #  #   Value of 1 stat - Values only from basic components so no lifesteal and so on
+    # stat_values = {
+    #     "physical_power": 350/8,
+    #     "magical_power": 350/12,
+    #     "physical_penetration": 0,
+    #     "magical_penetration": 0,
+    #     "critical_chance": 450/10,
+    #     "attack_speed": 350/10,
+    #     "lifesteal": 0,
+    #     "magical_lifesteal": 0,
+    #     "omnivamp": 0,
+    #     "physical_armor": 350/10,
+    #     "magical_armor": 350/10,
+    #     "tenacity": 0,
+    #     "max_health": 350/100,
+    #     "max_mana": 350/150,
+    #     "health_regeneration": 350/40,
+    #     "mana_regeneration": 350/50,
+    #     "heal_shield_increase": 0,
+    #     "ability_haste": 350/5,
+    #     "movement_speed": 0
+    # }
+    for item in data:
+        if item["slot_type"] == "Trinket" or  item["slot_type"] == "Active" or  item["slot_type"] == "Crest":
+            pass
+        else:
+            theoretical_value = 0
+            for stat in item["stats"]:
+                for value in stat_values:
+                    if stat == value:
+                        theoretical_value += stat_values[stat] * item["stats"][stat]
+            item_list[item["display_name"]] = {
+                "Price": item["total_price"],
+                "Value": theoretical_value,
+                "Difference": theoretical_value - item["total_price"]
+            }
+    return item_list
+
+# find_item_values()
+
+data = find_item_values()
+
+filename = f"temp_files/item_values.json"
+with open(filename, "w") as outfile:
+    json.dump(data, outfile, indent=4)
 
 # Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
 # LAN_team_stats(Immune)
