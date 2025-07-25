@@ -201,7 +201,7 @@ def analyze_drafts(draft_results):
     stats = {
         "Immune": defaultdict(lambda: {"picked": 0, "banned": 0, "wins": 0, "losses": 0}),
         "Opponent": defaultdict(lambda: {"picked": 0, "banned": 0, "wins": 0, "losses": 0}),
-        "Overall": defaultdict(lambda: {"picked": 0, "banned": 0, "presence": 0.0})
+        "Overall": defaultdict(lambda: {"picked": 0, "banned": 0, "wins": 0, "losses": 0, "presence": 0.0})
     }
 
     total_games = len(draft_results)
@@ -227,6 +227,7 @@ def analyze_drafts(draft_results):
                 stats[role][hero]["picked"] += 1
                 stats[role][hero]["wins" if is_win else "losses"] += 1
                 stats["Overall"][hero]["picked"] += 1
+                stats["Overall"][hero]["wins" if is_win else "losses"] += 1
                 heroes_seen.add(hero)
 
             for hero in draft[team]["bans"]:
@@ -238,24 +239,24 @@ def analyze_drafts(draft_results):
         for hero in heroes_seen:
             stats["Overall"][hero]["presence"] += 1
 
-    # Finalize presence as percentage and compute winrate
+    # Finalize winrate and cleanup
     for team in ["Immune", "Opponent"]:
         for hero, values in stats[team].items():
             total_games_played = values["wins"] + values["losses"]
             winrate = (values["wins"] / total_games_played) * 100 if total_games_played > 0 else 0.0
             values["winrate"] = round(winrate, 2)
-            # Remove losses and reorder fields
             del values["losses"]
 
     for hero, values in stats["Overall"].items():
-        if total_games > 0:
-            values["presence"] = round((values["presence"] / total_games) * 100, 2)
+        total_games_played = values["wins"] + values["losses"]
+        winrate = (values["wins"] / total_games_played) * 100 if total_games_played > 0 else 0.0
+        values["winrate"] = round(winrate, 2)
+        values["presence"] = round((values["presence"] / total_games) * 100, 2) if total_games > 0 else 0.0
 
     return stats
 
 def analyze_first_three_picks(draft_results):
-    stats = defaultdict(lambda: {"picked": 0, "presence": 0, "wins": 0, "losses": 0})
-    total_games = len(draft_results)
+    stats = defaultdict(lambda: {"picked": 0, "wins": 0, "losses": 0})
 
     for filename, draft in draft_results:
         win = draft.get("Win", False)
@@ -263,15 +264,10 @@ def analyze_first_three_picks(draft_results):
             continue
 
         first_three_picks = draft["Immune"]["picks"][:3]
-        seen_in_this_game = set()
 
         for hero in first_three_picks:
             stats[hero]["picked"] += 1
             stats[hero]["wins" if win else "losses"] += 1
-            seen_in_this_game.add(hero)
-
-        for hero in seen_in_this_game:
-            stats[hero]["presence"] += 1
 
     # Compute winrate and cleanup
     for hero, values in stats.items():
@@ -280,10 +276,9 @@ def analyze_first_three_picks(draft_results):
         values["winrate"] = round(winrate, 2)
         del values["losses"]
 
-        # Reorder to Picks, Presence, Winrate, Wins
+        # Reorder to Picks, Winrate, Wins
         reordered = {
             "picked": values["picked"],
-            "presence": round((values["presence"] / total_games) * 100, 2) if total_games > 0 else 0.0,
             "winrate": values["winrate"],
             "wins": values["wins"]
         }
@@ -313,8 +308,8 @@ def export_stats_to_csv(stats, filename):
                 hero,
                 data.get("picked", 0),
                 data.get("banned", 0),
-                "",
-                "",
+                data.get("winrate", 0.0),
+                data.get("wins", 0),
                 data.get("presence", 0.0),
                 "Overall"
             ])
@@ -322,16 +317,15 @@ def export_stats_to_csv(stats, filename):
 def export_first_three_stats_to_csv(stats, filename):
     with open(filename, mode='w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Hero", "Picked", "Presence", "Winrate", "Wins"])
+        writer.writerow(["Hero", "Picked", "Winrate", "Wins"])
         for hero, data in stats.items():
             writer.writerow([
                 hero,
                 data.get("picked", 0),
-                data.get("presence", 0.0),
                 data.get("winrate", 0.0),
                 data.get("wins", 0)
             ])
-
+            
 # Example usage:
 
 results = parse_all_draft_folders('drafts', 'hero_library')
