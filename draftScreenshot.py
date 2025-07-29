@@ -332,8 +332,8 @@ results = parse_all_draft_folders('drafts', 'hero_library')
 stats = analyze_drafts(results)
 early_picks_stats = analyze_first_three_picks(results)
 
-export_stats_to_csv(stats, "stats/full_stats.csv")
-export_first_three_stats_to_csv(early_picks_stats, "stats/early_picks_stats.csv")
+export_stats_to_csv(stats, "draft_stats/full_stats.csv")
+export_first_three_stats_to_csv(early_picks_stats, "draft_stats/early_picks_stats.csv")
 
 # def draftRecognition(draft_folder):
 #     results = parse_draft_folder(draft_folder, "hero_library")
