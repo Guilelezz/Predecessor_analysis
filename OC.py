@@ -707,21 +707,21 @@ def LAN_team_stats(Team):
                 # print("Player: " +str(target_player) +str(" Team: ")+str(player_team) +str(" Winning team: ")+str(winning_team))
 
             if player_team == winning_team:
-                print("Player team: " +str(player_team) +str(" Winning team: ")+str(winning_team))
+                # print("Player team: " +str(player_team) +str(" Winning team: ")+str(winning_team))
                 if winning_team == "dusk":
                     wteam_total_kills += dusk_kills
                 else:
                     wteam_total_kills += dawn_kills
-                print("Winning team total kills: " +str(wteam_total_kills))
+                # print("Winning team total kills: " +str(wteam_total_kills))
             elif player_team != "none":
-                print("Player team: " +str(player_team) +str(" Winning team: ")+str(winning_team))
+                # print("Player team: " +str(player_team) +str(" Winning team: ")+str(winning_team))
                 if player_team == "dawn":
                     lteam_total_kills += dawn_kills
                 else:
                     lteam_total_kills += dusk_kills
-                print("Losing team total kills: " +str(lteam_total_kills))
+                # print("Losing team total kills: " +str(lteam_total_kills))
             
-            print("Player: " +str(target_player) +str(" Current Kill participation: ")+str((100*(wtotal_kills + ltotal_kills + wtotal_assists + ltotal_assists)) / (wteam_total_kills + lteam_total_kills)))
+            # print("Player: " +str(target_player) +str(" Current Kill participation: ")+str((100*(wtotal_kills + ltotal_kills + wtotal_assists + ltotal_assists)) / (wteam_total_kills + lteam_total_kills)))
 
 
 
@@ -814,6 +814,8 @@ def LAN_team_stats(Team):
     filename = f"temp_files/combined_team_stats.json"
     with open(filename, "w") as outfile:
         json.dump(combined_data, outfile, indent=4)
+
+    LAN_to_excel()
 
     plot_team_stats(team_stats,wteam_stats,lteam_stats)
 
@@ -988,9 +990,8 @@ def find_item_values():
 # with open(filename, "w") as outfile:
 #     json.dump(data, outfile, indent=4)
 
-# Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
-# LAN_team_stats(Immune)
-LAN_to_excel()
+Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
+LAN_team_stats(Immune)
 
 # Team = ["Bondrewd", "Ven", ]
 # Role = ["offlane", "jungle"]
