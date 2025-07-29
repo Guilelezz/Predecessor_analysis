@@ -990,8 +990,8 @@ def find_item_values():
 # with open(filename, "w") as outfile:
 #     json.dump(data, outfile, indent=4)
 
-Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
-LAN_team_stats(Immune)
+# Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
+# LAN_team_stats(Immune)
 
 # Team = ["Bondrewd", "Ven", ]
 # Role = ["offlane", "jungle"]
@@ -1002,15 +1002,15 @@ LAN_team_stats(Immune)
 # team_gold_by_role(Team,Role)
         
 
-# data = get_data("Morose")
-# i = 0
-# for match in data["Custom games"]["matches"]:
-#     winning_team = match["winning_team"]
-#     for player in match["players"]:
-#         if player["display_name"] == "Morose":
-#             if winning_team == player["team"]:
-#                 i += 1
-# data = get_player_matches_custom("Morose")
-# filename = f"temp_files/test.json"
-# with open(filename, "w") as outfile:
-#     json.dump(data, outfile, indent=4)
+data = get_data("Bondrewd")
+i = 0
+for match in data["Custom games"]["matches"]:
+    winning_team = match["winning_team"]
+    for player in match["players"]:
+        if player["display_name"] == "Bondrewd":
+            if winning_team == player["team"]:
+                i += 1
+data = get_player_matches_custom("Bondrewd")
+filename = f"temp_files/test.json"
+with open(filename, "w") as outfile:
+    json.dump(data, outfile, indent=4)
