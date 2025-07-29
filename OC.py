@@ -2,6 +2,7 @@ import requests
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 #Return playerId from player name
 def get_player_id(playerName):
@@ -361,19 +362,23 @@ def plot_team_stats(team_data, wteam_data,lteam_data):
     kda_values = [team_data[player]["kda"] for player in players]
     damage_values = [team_data[player]["average_damage_to_heroes"] for player in players]
     gold_values = [team_data[player]["average_gold_earned"] for player in players]
+    kp_values = [team_data[player]["Kill participation"] for player in players]
 
     wkda_values = [wteam_data[player]["kda"] for player in players]
     wdamage_values = [wteam_data[player]["average_damage_to_heroes"] for player in players]
     wgold_values = [wteam_data[player]["average_gold_earned"] for player in players]
+    wkp_values = [wteam_data[player]["Kill participation"] for player in players]
 
     lkda_values = [lteam_data[player]["kda"] for player in players]
     ldamage_values = [lteam_data[player]["average_damage_to_heroes"] for player in players]
     lgold_values = [lteam_data[player]["average_gold_earned"] for player in players]
+    lkp_values = [lteam_data[player]["Kill participation"] for player in players]
 
     # === Generate the plots ===
     plot_stat(kda_values, wkda_values, lkda_values, "KDA per Player", "KDA", players)
     plot_stat(damage_values, wdamage_values, ldamage_values, "Average Damage to Heroes per minute", "Damage", players)
     plot_stat(gold_values, wgold_values, lgold_values, "Average Gold Earned per minute", "Gold", players)
+    plot_stat(kp_values, wkp_values, lkp_values, "Kill Participation per Player", "Kill Participation (%)", players)
 
 def plot_stat(values, wvalues, lvalues, title, ylabel, players):
     if not (len(players) == len(wvalues) == len(lvalues)):
@@ -630,7 +635,7 @@ def team_gold_leads(Team, role, enemy = None):
         print("Lead at End: " +str(leadEnd[k]/games[k]))
         print("\n")
 
-def LAN_team_stats(Team, enemy = None):
+def LAN_team_stats(Team):
     team_players = [Team[0], Team[1], Team[2],Team[3],Team[4]]
 
     # Initialize the team stats dictionary
@@ -643,20 +648,32 @@ def LAN_team_stats(Team, enemy = None):
     for target_player in team_players:
         data = get_data(target_player)
 
-        wtotal_kills = wtotal_deaths = wtotal_assists = 0
+        wtotal_kills = wtotal_deaths = wtotal_assists = wteam_total_kills = 0
         wtotal_damage_to_heroes = wtotal_gold = 0
-        ltotal_kills = ltotal_deaths = ltotal_assists = 0
+        ltotal_kills = ltotal_deaths = ltotal_assists = lteam_total_kills = 0
         ltotal_damage_to_heroes = ltotal_gold = 0
         games = games_won = games_lost = wgame_length = lgame_length = 0
+
         winning_team = ""
         hero = [0]*75
         wr_hero = [0]*75
 
         for match in data["Custom games"]["matches"]:
             winning_team = match["winning_team"]
+            dusk_kills = dawn_kills = 0
             duration = match["game_duration"]
+            player_team = "none"
             for player in match["players"]:
+
+                if player["team"] == "dusk":
+                    dusk_kills += player["kills"]
+                    # print("Dusk kills: " +str(dusk_kills))
+                else:
+                    dawn_kills += player["kills"]
+                    # print("Dawn kills: " +str(dawn_kills))
+
                 if player["display_name"] == target_player:
+                    # print("Found target player: " +str(target_player))
                     games += 1
                     if player["hero_id"] > 75:
                         hero_id = 74
@@ -665,6 +682,9 @@ def LAN_team_stats(Team, enemy = None):
                     hero[hero_id] += 1
 
                     if winning_team == player["team"]:
+                        # print("Player is on winning team")
+                        player_team = player["team"]
+
                         wr_hero[hero_id] += 1
                         wgame_length += duration
                         games_won += 1
@@ -674,6 +694,9 @@ def LAN_team_stats(Team, enemy = None):
                         wtotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
                         wtotal_gold += player["gold_earned"]  
                     else:
+                        # print("Player is on losing team")
+                        player_team = player["team"]
+
                         lgame_length += duration
                         games_lost += 1
                         ltotal_kills += player["kills"]
@@ -681,6 +704,26 @@ def LAN_team_stats(Team, enemy = None):
                         ltotal_assists += player["assists"]
                         ltotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
                         ltotal_gold += player["gold_earned"] 
+                # print("Player: " +str(target_player) +str(" Team: ")+str(player_team) +str(" Winning team: ")+str(winning_team))
+
+            if player_team == winning_team:
+                print("Player team: " +str(player_team) +str(" Winning team: ")+str(winning_team))
+                if winning_team == "dusk":
+                    wteam_total_kills += dusk_kills
+                else:
+                    wteam_total_kills += dawn_kills
+                print("Winning team total kills: " +str(wteam_total_kills))
+            elif player_team != "none":
+                print("Player team: " +str(player_team) +str(" Winning team: ")+str(winning_team))
+                if player_team == "dawn":
+                    lteam_total_kills += dawn_kills
+                else:
+                    lteam_total_kills += dusk_kills
+                print("Losing team total kills: " +str(lteam_total_kills))
+            
+            print("Player: " +str(target_player) +str(" Current Kill participation: ")+str((100*(wtotal_kills + ltotal_kills + wtotal_assists + ltotal_assists)) / (wteam_total_kills + lteam_total_kills)))
+
+
 
         if games_won + games_lost > 0:
             avg_data = {
@@ -688,34 +731,36 @@ def LAN_team_stats(Team, enemy = None):
                 "win_rate" : (100*games_won)/games,
                 "kda": round((wtotal_kills + ltotal_kills + wtotal_assists + ltotal_deaths) / (wtotal_deaths + ltotal_deaths), 2),
                 "average_damage_to_heroes": round(((wtotal_damage_to_heroes + ltotal_damage_to_heroes) / games) / ((wgame_length + lgame_length)/(60*games)), 2),
-                "average_gold_earned": round(((wtotal_gold + ltotal_gold) / games) / ((wgame_length+lgame_length)/(60*games)), 2)
+                "average_gold_earned": round(((wtotal_gold + ltotal_gold) / games) / ((wgame_length+lgame_length)/(60*games)), 2),
+                "Kill participation": round((100*(wtotal_kills + ltotal_kills + wtotal_assists + ltotal_assists)) / (wteam_total_kills + lteam_total_kills), 2)
             }
             team_stats[target_player] = avg_data
         else:
             team_stats[target_player] = {"error": "No games found"}
-
 
         if games_won > 0:
             wavg_data = {
                 "wins": games_won,
                 "kda": round((wtotal_kills + wtotal_assists) / wtotal_deaths, 2),
                 "average_damage_to_heroes": round((wtotal_damage_to_heroes / games_won) / (wgame_length/(60*games_won)), 2),
-                "average_gold_earned": round((wtotal_gold / games_won) / (wgame_length/(60*games_won)), 2)
+                "average_gold_earned": round((wtotal_gold / games_won) / (wgame_length/(60*games_won)), 2),
+                "Kill participation": round((100*(wtotal_kills + wtotal_assists)) / (wteam_total_kills), 2)
             }
             wteam_stats[target_player] = wavg_data
         else:
-            wteam_stats[target_player] = {"error": "No games found"}
+            wteam_stats[target_player] = {"error": "No wins found"}
 
         if games_lost > 0:
             lavg_data = {
                 "losses": games_lost,
                 "kda": round((ltotal_kills + ltotal_assists) / ltotal_deaths, 2),
                 "average_damage_to_heroes": round((ltotal_damage_to_heroes / games_lost) / (lgame_length/(60*games_lost)), 2),
-                "average_gold_earned": round((ltotal_gold / games_lost) / (lgame_length/(60*games_lost)), 2)
+                "average_gold_earned": round((ltotal_gold / games_lost) / (lgame_length/(60*games_lost)), 2),
+                "Kill participation": round((100*(ltotal_kills + ltotal_assists)) / (lteam_total_kills), 2)
             }
             lteam_stats[target_player] = lavg_data
         else:
-            lteam_stats[target_player] = {"error": "No games found"}
+            lteam_stats[target_player] = {"error": "No losses found"}
 
         #Note down most played heroes by number indency
         hero_stats[target_player] = hero
@@ -772,6 +817,97 @@ def LAN_team_stats(Team, enemy = None):
 
     plot_team_stats(team_stats,wteam_stats,lteam_stats)
 
+def LAN_to_excel():
+    # Load the JSON data
+    with open("temp_files/combined_team_stats.json", "r") as f:
+        data = json.load(f)
+
+    # Extract and flatten main team stats
+    team_stats_df = pd.DataFrame(data["team_stats"]).T.reset_index()
+    team_stats_df.rename(columns={
+        "index": "Player",
+        "games": "Games",
+        "win_rate": "Win Rate (%)",
+        "kda": "KDA",
+        "average_damage_to_heroes": "Avg. Damage to Heroes",
+        "average_gold_earned": "Avg. Gold Earned",
+        "Kill participation": "Kill Participation (%)"
+    }, inplace=True)
+
+    # Reorder columns and round values
+    team_stats_df = team_stats_df[
+        ["Player", "Games", "Win Rate (%)", "KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]
+    ]
+    team_stats_df[["Win Rate (%)", "KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]] = \
+        team_stats_df[["Win Rate (%)", "KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]].round(2)
+
+    # Copy to clipboard for team stats
+    team_stats_df.to_clipboard(index=False)
+    print("✅ Formatted team stats copied to clipboard. You can now paste directly into Excel.")
+
+    input("Press Enter to continue to Heroes stats...")
+
+    # --- HEROES STATS FORMATTING ---
+    all_heroes_rows = []
+    for player, hero_dict in data["most_played_heroes"].items():
+        hero_names = list(hero_dict.keys())
+        picks = [hero_dict[h][0] for h in hero_names]
+        winrates = [round(hero_dict[h][1], 2) for h in hero_names]
+
+        # Build the 3 rows for this player
+        row_player = [player] + hero_names
+        row_picks = ["Picks"] + picks
+        row_winrate = ["Win Rate (%)"] + winrates
+
+        # Add to the list
+        all_heroes_rows.append(row_player)
+        all_heroes_rows.append(row_picks)
+        all_heroes_rows.append(row_winrate)
+
+    # Convert to DataFrame for clipboard
+    heroes_df = pd.DataFrame(all_heroes_rows)
+    heroes_df.to_clipboard(index=False, header=False)
+    print("✅ Formatted heroes stats copied to clipboard. You can now paste directly into Excel.")
+
+    input("Press Enter to continue to WIN stats...")
+
+    # === WINS TEAM STATS ===
+    wins_stats_df = pd.DataFrame(data["wins_team_stats"]).T.reset_index()
+    wins_stats_df.rename(columns={
+        "index": "Player",
+        "wins": "Wins",
+        "kda": "KDA",
+        "average_damage_to_heroes": "Avg. Damage to Heroes",
+        "average_gold_earned": "Avg. Gold Earned",
+        "Kill participation": "Kill Participation (%)"
+    }, inplace=True)
+    wins_stats_df = wins_stats_df[
+        ["Player", "Wins", "KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]
+    ]
+    wins_stats_df[["KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]] = \
+        wins_stats_df[["KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]].round(2)
+    wins_stats_df.to_clipboard(index=False)
+    print("✅ Formatted wins stats copied to clipboard. You can now paste directly into Excel.")
+    input("Press Enter to continue to LOSS stats...")
+
+    # === LOSSES TEAM STATS ===
+    losses_stats_df = pd.DataFrame(data["losses_team_stats"]).T.reset_index()
+    losses_stats_df.rename(columns={
+        "index": "Player",
+        "losses": "Losses",
+        "kda": "KDA",
+        "average_damage_to_heroes": "Avg. Damage to Heroes",
+        "average_gold_earned": "Avg. Gold Earned",
+        "Kill participation": "Kill Participation (%)"
+    }, inplace=True)
+    losses_stats_df = losses_stats_df[
+        ["Player", "Losses", "KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]
+    ]
+    losses_stats_df[["KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]] = \
+        losses_stats_df[["KDA", "Avg. Damage to Heroes", "Avg. Gold Earned", "Kill Participation (%)"]].round(2)
+    losses_stats_df.to_clipboard(index=False)
+    print("✅ Formatted losses stats copied to clipboard. You can now paste directly into Excel.")
+    input("Press Enter to finish...")
 
 def get_all_items():
     response = requests.get("https://omeda.city/items.json")
@@ -846,14 +982,15 @@ def find_item_values():
 
 # find_item_values()
 
-data = find_item_values()
+# data = find_item_values()
 
-filename = f"temp_files/item_values.json"
-with open(filename, "w") as outfile:
-    json.dump(data, outfile, indent=4)
+# filename = f"temp_files/item_values.json"
+# with open(filename, "w") as outfile:
+#     json.dump(data, outfile, indent=4)
 
 # Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
 # LAN_team_stats(Immune)
+LAN_to_excel()
 
 # Team = ["Bondrewd", "Ven", ]
 # Role = ["offlane", "jungle"]
@@ -864,17 +1001,15 @@ with open(filename, "w") as outfile:
 # team_gold_by_role(Team,Role)
         
 
-
-
-# data = get_data("Neft")
+# data = get_data("Morose")
 # i = 0
 # for match in data["Custom games"]["matches"]:
 #     winning_team = match["winning_team"]
 #     for player in match["players"]:
-#         if player["display_name"] == "Neft":
+#         if player["display_name"] == "Morose":
 #             if winning_team == player["team"]:
 #                 i += 1
-# data = get_player_matches_custom("Neft")
+# data = get_player_matches_custom("Morose")
 # filename = f"temp_files/test.json"
 # with open(filename, "w") as outfile:
 #     json.dump(data, outfile, indent=4)
