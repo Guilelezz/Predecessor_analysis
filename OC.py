@@ -771,6 +771,7 @@ def LAN_team_stats(Team):
 
     for player in hero_stats:
         top_n = 5
+        print("Most played heroes for player: " +str(player))
 
         # Sort by value descending, keeping index
         sorted_indices = sorted(enumerate(hero_stats[player]), key=lambda x: x[1], reverse=True)
@@ -783,7 +784,6 @@ def LAN_team_stats(Team):
 
         if player not in most_played_heroes:
             most_played_heroes[player] = {}
-
         for i in range(len(largest_indices)):
             key = largest_indices[i]
             if largest_indices[i] == 74:
@@ -1002,15 +1002,15 @@ def find_item_values():
 # team_gold_by_role(Team,Role)
         
 
-# data = get_data("SURVIVORTV")
-# i = 0
-# for match in data["Custom games"]["matches"]:
-#     winning_team = match["winning_team"]
-#     for player in match["players"]:
-#         if player["display_name"] == "SURVIVORTV":
-#             if winning_team == player["team"]:
-#                 i += 1
-# data = get_player_matches_custom("SURVIVORTV")
-# filename = f"temp_files/test.json"
-# with open(filename, "w") as outfile:
-#     json.dump(data, outfile, indent=4)
+data = get_data("CoLdskis")
+i = 0
+for match in data["Custom games"]["matches"]:
+    winning_team = match["winning_team"]
+    for player in match["players"]:
+        if player["display_name"] == "CoLdskis":
+            if winning_team == player["team"]:
+                i += 1
+data = get_player_matches_custom("CoLdskis")
+filename = f"temp_files/test.json"
+with open(filename, "w") as outfile:
+    json.dump(data, outfile, indent=4)
