@@ -770,7 +770,13 @@ def LAN_team_stats(Team):
     most_played_heroes = {}
 
     for player in hero_stats:
-        top_n = 5
+        top_n = 0
+
+        for i in range(len(hero_stats[player])):
+            if hero_stats[player][i] != 0:
+                top_n += 1
+
+        print("Top N heroes for player: " +str(player) +str(" is: ")+str(top_n))
         print("Most played heroes for player: " +str(player))
 
         # Sort by value descending, keeping index
@@ -817,7 +823,7 @@ def LAN_team_stats(Team):
 
     LAN_to_excel()
 
-    plot_team_stats(team_stats,wteam_stats,lteam_stats)
+    # plot_team_stats(team_stats,wteam_stats,lteam_stats)
 
 def LAN_to_excel():
     # Load the JSON data
@@ -982,6 +988,43 @@ def find_item_values():
             }
     return item_list
 
+def get_customgames_from_file():
+    with open("internal_games/all_match_details.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # If your file contains a list of games, iterate; if it's a single game, wrap in a list
+    games = data if isinstance(data, list) else [data]
+
+    custom_games = []
+    for game in games:
+        if game.get("gameMode") == "CUSTOM":
+            filtered_game = {
+                "winningTeam": game.get("winningTeam"),
+                "gameDuration": game.get("gameDuration"),
+                "players": []
+            }
+            for player in game.get("playerData", []):
+                raw_role = player.get("roleName")
+                role = raw_role.split("::",1)[1]
+                filtered_player = {
+                    "playerName": player.get("playerName"),
+                    "teamId": player.get("teamId"),
+                    "role": role,
+                    "kills": player.get("combatData", {}).get("kills"),
+                    "deaths": player.get("combatData", {}).get("deaths"),
+                    "assists": player.get("combatData", {}).get("assists"),
+                    "totalDamageDealtToHeroes": player.get("damageHealData", {}).get("totalDamageDealtToHeroes"),
+                    "goldEarned": player.get("incomeData", {}).get("goldEarned"),
+                    "hero": player.get("heroName"),
+                    "goldEarnedAtInterval": player.get("incomeData", {}).get("goldEarnedAtInterval"),
+                }
+                filtered_game["players"].append(filtered_player)
+            custom_games.append(filtered_game)
+
+    # Save or print the result
+    with open("internal_games/custom_games_extracted.json", "w", encoding="utf-8") as f:
+        json.dump(custom_games, f, indent=2)
+
 # find_item_values()
 
 # data = find_item_values()
@@ -1002,15 +1045,15 @@ def find_item_values():
 # team_gold_by_role(Team,Role)
         
 
-data = get_data("CoLdskis")
-i = 0
-for match in data["Custom games"]["matches"]:
-    winning_team = match["winning_team"]
-    for player in match["players"]:
-        if player["display_name"] == "CoLdskis":
-            if winning_team == player["team"]:
-                i += 1
-data = get_player_matches_custom("CoLdskis")
-filename = f"temp_files/test.json"
-with open(filename, "w") as outfile:
-    json.dump(data, outfile, indent=4)
+# data = get_data("CoLdskis")
+# i = 0
+# for match in data["Custom games"]["matches"]:
+#     winning_team = match["winning_team"]
+#     for player in match["players"]:
+#         if player["display_name"] == "CoLdskis":
+#             if winning_team == player["team"]:
+#                 i += 1
+# data = get_player_matches_custom("CoLdskis")
+# filename = f"temp_files/test.json"
+# with open(filename, "w") as outfile:
+#     json.dump(data, outfile, indent=4)

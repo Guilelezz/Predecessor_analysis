@@ -25,7 +25,7 @@ def main():
 
     Flowstate = ["bkbgrnrjefek", "Mercyy", "simba", peeck, Maguli]
     Hive = [MrGooRoo, "Nugzlit", "Aho", "Shwimmityy", "KevKaioken"]
-    Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
+    Immune = ["Morose", "ConteEiacula", "GoodByeEU", "Penguin", "Neft"]
     Mach10 = ["Bondrewd", "norf", bry, "Bardeldoo", "Lakenator" ]
     MTG = ["Nitro", "KingKofi", "PinzoDunzo", smegatron, "Chicken"]
     Mythic = ["TekkenKid12", "gratty", "Appie", "Toasty", "Cure"]
