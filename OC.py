@@ -188,7 +188,7 @@ def get_player_matches(PlayerName, TimeFrame):
 def get_player_matches_custom(PlayerName):
     PlayerId = get_player_id(PlayerName)
 
-    response = requests.get("https://omeda.city/players/"+str(PlayerId)+str("/matches.json?filter[game_mode]=custom&time_frame=1M&filter[game_mode]=custom&per_page=100"))
+    response = requests.get("https://omeda.city/players/"+str(PlayerId)+str("/matches.json?filter[game_mode]=custom&time_frame=1M&filter[game_mode]=custom&per_page=1000"))
     
     matches = response.json()
 
