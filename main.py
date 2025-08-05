@@ -41,7 +41,7 @@ def main():
 
     # OC.LAN_team_stats(Flowstate)
     # OC.LAN_team_stats(Hive)
-    # OC.LAN_team_stats(Immune)
+    OC.LAN_team_stats(Immune)
     # OC.LAN_team_stats(Mach10)
     # OC.LAN_team_stats(MTG)
     # OC.LAN_team_stats(Mythic)

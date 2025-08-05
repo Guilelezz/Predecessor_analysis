@@ -723,7 +723,80 @@ def LAN_team_stats(Team):
             
             # print("Player: " +str(target_player) +str(" Current Kill participation: ")+str((100*(wtotal_kills + ltotal_kills + wtotal_assists + ltotal_assists)) / (wteam_total_kills + lteam_total_kills)))
 
+        with open("internal_games/custom_games_extracted.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
 
+        heroes = get_list_of_hero_ids()
+        # print(heroes) #Test
+
+        for match in data:
+            winning_team = match["winningTeam"]
+            dusk_kills = dawn_kills = 0
+            duration = match["game_duration"]
+            player_team = "none"
+            for player in match["players"]:
+                if player["team"] == "dusk":
+                    dusk_kills += player["kills"]
+                else:
+                    dawn_kills += player["kills"]
+
+                if player["display_name"] == target_player:
+                    games += 1
+                    if player["hero"] == "Lizard":
+                        player["hero"] = "Zarus"
+                    elif player["hero"] == "Bright":
+                        player["hero"] = "Renna"
+                    elif player["hero"] == "Tideinder":
+                        player["hero"] = "Yurei"
+                    elif player["hero"] == "Boost":
+                        player["hero"] = "Skylar"
+                    elif player["hero"] == "Huntress":
+                        player["hero"] = "Kira"
+                    elif player["hero"] == "Emerald":
+                        player["hero"] = "Argus"
+                    elif player["hero"] == "Wood":
+                        player["hero"] = "Mourn"
+                    elif player["hero"] == "GRIMexe":
+                        player["hero"] = "GRIM.exe"
+                    
+                    for individual_hero in heroes:
+
+                        # print("Player hero: " +str(player_hero) +str(" Hero: ")+str(heroes[individual_hero]))
+                        if player["hero"] == heroes[individual_hero]:
+                            hero_id = individual_hero
+                            print("Player: " +str(target_player)+str(" Found hero: ") +str(heroes[individual_hero]) + str(" Hero ID: ")+str(hero_id))
+                            if hero_id > 75:
+                                hero_id = 74
+                            break
+                    hero[hero_id] += 1
+
+                    if winning_team == player["team"]:
+                        wr_hero[hero_id] += 1
+                        wgame_length += duration
+                        games_won += 1
+                        wtotal_kills += player["kills"]
+                        wtotal_deaths += player["deaths"]
+                        wtotal_assists += player["assists"]
+                        wtotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
+                        wtotal_gold += player["gold_earned"]  
+                    else:
+                        lgame_length += duration
+                        games_lost += 1
+                        ltotal_kills += player["kills"]
+                        ltotal_deaths += player["deaths"]
+                        ltotal_assists += player["assists"]
+                        ltotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
+                        ltotal_gold += player["gold_earned"]
+            if player_team == winning_team:
+                if winning_team == "dusk":
+                    wteam_total_kills += dusk_kills
+                else:
+                    wteam_total_kills += dawn_kills
+            elif player_team != "none":
+                if player_team == "dawn":
+                    lteam_total_kills += dawn_kills
+                else:
+                    lteam_total_kills += dusk_kills
 
         if games_won + games_lost > 0:
             avg_data = {
@@ -785,9 +858,6 @@ def LAN_team_stats(Team):
         # Extract the top N indices
         largest_indices = [index for index, value in sorted_indices[:top_n]]
 
-        # if hero_list[largest_indices[0]] == 74:
-        #     hero_list[largest_indices[0]] = 10000000001
-
         if player not in most_played_heroes:
             most_played_heroes[player] = {}
         for i in range(len(largest_indices)):
@@ -795,8 +865,7 @@ def LAN_team_stats(Team):
             if largest_indices[i] == 74:
                 key = 10000000001
             most_played_heroes[player][hero_list[key]] = [hero_stats[player][largest_indices[i]]]
-            win_rate_by_hero = (100*wr_hero_stats[player][largest_indices[i]])/hero_stats[player][largest_indices[i]]
-            # most_played_heroes[player][hero_list[key]] = (100*wr_hero_stats[player][largest_indices])/hero_stats[player][largest_indices[i]] 
+            win_rate_by_hero = (100*wr_hero_stats[player][largest_indices[i]])/hero_stats[player][largest_indices[i]] 
             most_played_heroes[player][hero_list[key]].append(win_rate_by_hero)
 
     # filename = f"temp_files/team_stats.json"
@@ -998,25 +1067,37 @@ def get_customgames_from_file():
     custom_games = []
     for game in games:
         if game.get("gameMode") == "CUSTOM":
+            wining_team = ""
+            if game.get("winningTeam") == 1:
+                wining_team = "dawn"
+            else:
+                wining_team = "dusk"
+            
             filtered_game = {
-                "winningTeam": game.get("winningTeam"),
-                "gameDuration": game.get("gameDuration"),
+                "winningTeam": wining_team,
+                "game_duration": game.get("gameDuration"),
                 "players": []
             }
             for player in game.get("playerData", []):
                 raw_role = player.get("roleName")
                 role = raw_role.split("::",1)[1]
+                team = ""
+                if player.get("teamId") == 1:
+                    team = "dawn"
+                else:
+                    team = "dusk"
+                
                 filtered_player = {
-                    "playerName": player.get("playerName"),
-                    "teamId": player.get("teamId"),
-                    "role": role,
+                    "display_name": player.get("playerName"),
+                    "team": team,
+                    "role": role.lower(),
                     "kills": player.get("combatData", {}).get("kills"),
                     "deaths": player.get("combatData", {}).get("deaths"),
                     "assists": player.get("combatData", {}).get("assists"),
-                    "totalDamageDealtToHeroes": player.get("damageHealData", {}).get("totalDamageDealtToHeroes"),
-                    "goldEarned": player.get("incomeData", {}).get("goldEarned"),
+                    "total_damage_dealt_to_heroes": player.get("damageHealData", {}).get("totalDamageDealtToHeroes"),
+                    "gold_earned": player.get("incomeData", {}).get("goldEarned"),
                     "hero": player.get("heroName"),
-                    "goldEarnedAtInterval": player.get("incomeData", {}).get("goldEarnedAtInterval"),
+                    "gold_earned_at_interval": player.get("incomeData", {}).get("goldEarnedAtInterval"),
                 }
                 filtered_game["players"].append(filtered_player)
             custom_games.append(filtered_game)
@@ -1024,6 +1105,10 @@ def get_customgames_from_file():
     # Save or print the result
     with open("internal_games/custom_games_extracted.json", "w", encoding="utf-8") as f:
         json.dump(custom_games, f, indent=2)
+
+Immune = ["Morose", "ConteEiacula", "GoodByeEU", "Penguin", "Neft"]
+LAN_team_stats(Immune)
+# get_customgames_from_file()
 
 # find_item_values()
 
