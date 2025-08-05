@@ -637,7 +637,7 @@ def team_gold_leads(Team, role, enemy = None):
 
 def LAN_team_stats(Team):
     team_players = [Team[0], Team[1], Team[2],Team[3],Team[4]]
-
+    roles = ["offlane", "jungle", "midlane", "support", "carry"]
     # Initialize the team stats dictionary
     wteam_stats = {}
     lteam_stats = {}
@@ -645,7 +645,7 @@ def LAN_team_stats(Team):
     hero_stats = {}
     wr_hero_stats = {}
 
-    for target_player in team_players:
+    for target_player, target_role in zip(team_players, roles):
         data = get_data(target_player)
 
         wtotal_kills = wtotal_deaths = wtotal_assists = wteam_total_kills = 0
@@ -672,7 +672,7 @@ def LAN_team_stats(Team):
                     dawn_kills += player["kills"]
                     # print("Dawn kills: " +str(dawn_kills))
 
-                if player["display_name"] == target_player:
+                if player["display_name"] == target_player and player["role"] == target_role:
                     # print("Found target player: " +str(target_player))
                     games += 1
                     if player["hero_id"] > 75:
@@ -727,20 +727,20 @@ def LAN_team_stats(Team):
             data = json.load(f)
 
         heroes = get_list_of_hero_ids()
-        # print(heroes) #Test
 
         for match in data:
-            winning_team = match["winningTeam"]
+            winning_team = match["winning_team"]
             dusk_kills = dawn_kills = 0
             duration = match["game_duration"]
             player_team = "none"
             for player in match["players"]:
+
                 if player["team"] == "dusk":
                     dusk_kills += player["kills"]
                 else:
                     dawn_kills += player["kills"]
 
-                if player["display_name"] == target_player:
+                if player["display_name"] == target_player and player["role"] == target_role:
                     games += 1
                     if player["hero"] == "Lizard":
                         player["hero"] = "Zarus"
@@ -764,13 +764,14 @@ def LAN_team_stats(Team):
                         # print("Player hero: " +str(player_hero) +str(" Hero: ")+str(heroes[individual_hero]))
                         if player["hero"] == heroes[individual_hero]:
                             hero_id = individual_hero
-                            print("Player: " +str(target_player)+str(" Found hero: ") +str(heroes[individual_hero]) + str(" Hero ID: ")+str(hero_id))
+                            # print("Player: " +str(target_player)+str(" Found hero: ") +str(heroes[individual_hero]) + str(" Hero ID: ")+str(hero_id))
                             if hero_id > 75:
                                 hero_id = 74
                             break
                     hero[hero_id] += 1
 
                     if winning_team == player["team"]:
+                        player_team = player["team"]
                         wr_hero[hero_id] += 1
                         wgame_length += duration
                         games_won += 1
@@ -780,13 +781,15 @@ def LAN_team_stats(Team):
                         wtotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
                         wtotal_gold += player["gold_earned"]  
                     else:
+                        player_team = player["team"]
                         lgame_length += duration
                         games_lost += 1
                         ltotal_kills += player["kills"]
                         ltotal_deaths += player["deaths"]
                         ltotal_assists += player["assists"]
                         ltotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
-                        ltotal_gold += player["gold_earned"]
+                        ltotal_gold += player["gold_earned"]             
+
             if player_team == winning_team:
                 if winning_team == "dusk":
                     wteam_total_kills += dusk_kills
@@ -1068,13 +1071,13 @@ def get_customgames_from_file():
     for game in games:
         if game.get("gameMode") == "CUSTOM":
             wining_team = ""
-            if game.get("winningTeam") == 1:
+            if game.get("winningTeam") == 0:
                 wining_team = "dawn"
             else:
                 wining_team = "dusk"
             
             filtered_game = {
-                "winningTeam": wining_team,
+                "winning_team": wining_team,
                 "game_duration": game.get("gameDuration"),
                 "players": []
             }
@@ -1082,7 +1085,7 @@ def get_customgames_from_file():
                 raw_role = player.get("roleName")
                 role = raw_role.split("::",1)[1]
                 team = ""
-                if player.get("teamId") == 1:
+                if player.get("teamId") == 0:
                     team = "dawn"
                 else:
                     team = "dusk"
@@ -1105,30 +1108,6 @@ def get_customgames_from_file():
     # Save or print the result
     with open("internal_games/custom_games_extracted.json", "w", encoding="utf-8") as f:
         json.dump(custom_games, f, indent=2)
-
-Immune = ["Morose", "ConteEiacula", "GoodByeEU", "Penguin", "Neft"]
-LAN_team_stats(Immune)
-# get_customgames_from_file()
-
-# find_item_values()
-
-# data = find_item_values()
-
-# filename = f"temp_files/item_values.json"
-# with open(filename, "w") as outfile:
-#     json.dump(data, outfile, indent=4)
-
-# Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
-# LAN_team_stats(Immune)
-
-# Team = ["Bondrewd", "Ven", ]
-# Role = ["offlane", "jungle"]
-# Team = ["Brandonite"]
-# Role = ["midlane"]
-# # Enemy = ["import","Neft"]
-# # team_gold_leads(Team,Role,Enemy)
-# team_gold_by_role(Team,Role)
-        
 
 # data = get_data("CoLdskis")
 # i = 0
