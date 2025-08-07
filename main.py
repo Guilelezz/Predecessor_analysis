@@ -25,7 +25,7 @@ def main():
 
     Flowstate = ["bkbgrnrjefek", "Mercyy", "simba", peeck, Maguli]
     Hive = [MrGooRoo, "Nugzlit", "Aho", "Shwimmityy", "KevKaioken"]
-    Immune = ["Morose", "ConteEiacula", "GoodByeEU", "Penguin", "Neft"]
+    Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
     Mach10 = ["Bondrewd", "norf", bry, "Bardeldoo", "Lakenator" ]
     MTG = ["Nitro", "KingKofi", "PinzoDunzo", smegatron, "Chicken"]
     Mythic = ["TekkenKid12", "gratty", "Appie", "Toasty", "Cure"]
@@ -41,8 +41,8 @@ def main():
 
     # OC.LAN_team_stats(Flowstate)
     # OC.LAN_team_stats(Hive)
-    OC.LAN_team_stats(Immune)
-    # OC.LAN_team_stats(Mach10)
+    # OC.LAN_team_stats(Immune)
+    OC.LAN_team_stats(Mach10)
     # OC.LAN_team_stats(MTG)
     # OC.LAN_team_stats(Mythic)
     # OC.LAN_team_stats(Primal)

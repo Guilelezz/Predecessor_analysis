@@ -644,7 +644,7 @@ def LAN_team_stats(Team):
     team_stats = {}
     hero_stats = {}
     wr_hero_stats = {}
-
+    print("\nTeam: " +str(team_players) +str("\n"))
     for target_player, target_role in zip(team_players, roles):
         data = get_data(target_player)
 
@@ -653,6 +653,7 @@ def LAN_team_stats(Team):
         ltotal_kills = ltotal_deaths = ltotal_assists = lteam_total_kills = 0
         ltotal_damage_to_heroes = ltotal_gold = 0
         games = games_won = games_lost = wgame_length = lgame_length = 0
+        custom_games_won = custom_games_lost = internal_games_won = internal_games_lost = 0
 
         winning_team = ""
         hero = [0]*75
@@ -684,7 +685,7 @@ def LAN_team_stats(Team):
                     if winning_team == player["team"]:
                         # print("Player is on winning team")
                         player_team = player["team"]
-
+                        custom_games_won += 1
                         wr_hero[hero_id] += 1
                         wgame_length += duration
                         games_won += 1
@@ -696,7 +697,7 @@ def LAN_team_stats(Team):
                     else:
                         # print("Player is on losing team")
                         player_team = player["team"]
-
+                        custom_games_lost += 1
                         lgame_length += duration
                         games_lost += 1
                         ltotal_kills += player["kills"]
@@ -771,6 +772,7 @@ def LAN_team_stats(Team):
                     hero[hero_id] += 1
 
                     if winning_team == player["team"]:
+                        internal_games_won += 1
                         player_team = player["team"]
                         wr_hero[hero_id] += 1
                         wgame_length += duration
@@ -781,6 +783,7 @@ def LAN_team_stats(Team):
                         wtotal_damage_to_heroes += player["total_damage_dealt_to_heroes"]
                         wtotal_gold += player["gold_earned"]  
                     else:
+                        internal_games_lost += 1
                         player_team = player["team"]
                         lgame_length += duration
                         games_lost += 1
@@ -841,6 +844,15 @@ def LAN_team_stats(Team):
         #Note down most played heroes by number indency
         hero_stats[target_player] = hero
         wr_hero_stats[target_player] = wr_hero
+        try:
+            print("player: " +str(target_player) +str(" Custom games played: ") +str(custom_games_lost+custom_games_won) +str(", Custom games won: ")+str(custom_games_won) +str(", Custom games lost: ")+str(custom_games_lost) +str(" winrate: ")+str((100*custom_games_won)/(custom_games_won+custom_games_lost)))
+        except ZeroDivisionError:
+            print("player: " +str(target_player) +str(" Custom games played: ") +str(custom_games_lost+custom_games_won) +str(", Custom games won: ")+str(custom_games_won) +str(", Custom games lost: ")+str(custom_games_lost) +str(" winrate: 0%"))
+        try:
+            print("player: " +str(target_player) +str(" Internal games played: ") +str(internal_games_won+internal_games_lost) +str(", Internal games won: ")+str(internal_games_won) +str(", Internal games lost: ")+str(internal_games_lost) +str(" winrate: ")+str((100*internal_games_won)/(internal_games_won+internal_games_lost)))
+        except ZeroDivisionError:
+            print("player: " +str(target_player) +str(" Internal games played: ") +str(internal_games_won+internal_games_lost) +str(", Internal games won: ")+str(internal_games_won) +str(", Internal games lost: ")+str(internal_games_lost) +str(" winrate: 0%"))
+        print()
 
     hero_list = get_list_of_hero_ids()
     most_played_heroes = {}
@@ -852,8 +864,8 @@ def LAN_team_stats(Team):
             if hero_stats[player][i] != 0:
                 top_n += 1
 
-        print("Top N heroes for player: " +str(player) +str(" is: ")+str(top_n))
-        print("Most played heroes for player: " +str(player))
+        # print("Top N heroes for player: " +str(player) +str(" is: ")+str(top_n))
+        # print("Most played heroes for player: " +str(player))
 
         # Sort by value descending, keeping index
         sorted_indices = sorted(enumerate(hero_stats[player]), key=lambda x: x[1], reverse=True)
@@ -893,7 +905,7 @@ def LAN_team_stats(Team):
     with open(filename, "w") as outfile:
         json.dump(combined_data, outfile, indent=4)
 
-    LAN_to_excel()
+    # LAN_to_excel()
 
     # plot_team_stats(team_stats,wteam_stats,lteam_stats)
 
