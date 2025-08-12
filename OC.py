@@ -658,7 +658,7 @@ def LAN_team_stats(Team):
         winning_team = ""
         hero = [0]*75
         wr_hero = [0]*75
-
+        
         for match in data["Custom games"]["matches"]:
             winning_team = match["winning_team"]
             dusk_kills = dawn_kills = 0
@@ -905,7 +905,7 @@ def LAN_team_stats(Team):
     with open(filename, "w") as outfile:
         json.dump(combined_data, outfile, indent=4)
 
-    # LAN_to_excel()
+    LAN_to_excel()
 
     # plot_team_stats(team_stats,wteam_stats,lteam_stats)
 
@@ -1121,15 +1121,15 @@ def get_customgames_from_file():
     with open("internal_games/custom_games_extracted.json", "w", encoding="utf-8") as f:
         json.dump(custom_games, f, indent=2)
 
-# data = get_data("CoLdskis")
+# data = get_data("Locked in baseme...")
 # i = 0
 # for match in data["Custom games"]["matches"]:
 #     winning_team = match["winning_team"]
 #     for player in match["players"]:
-#         if player["display_name"] == "CoLdskis":
+#         if player["display_name"] == "Locked in baseme...":
 #             if winning_team == player["team"]:
 #                 i += 1
-# data = get_player_matches_custom("CoLdskis")
+# data = get_player_matches_custom("Locked in baseme...")
 # filename = f"temp_files/test.json"
 # with open(filename, "w") as outfile:
 #     json.dump(data, outfile, indent=4)

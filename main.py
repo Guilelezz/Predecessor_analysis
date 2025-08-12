@@ -26,7 +26,7 @@ def main():
     Flowstate = ["bkbgrnrjefek", "Mercyy", "simba", peeck, Maguli]
     Hive = [MrGooRoo, "Nugzlit", "Aho", "Shwimmityy", "KevKaioken"]
     Immune = ["Morose", "ConteEiacula", "ManQ", "Penguin", "Neft"]
-    Mach10 = ["Bondrewd", "norf", bry, "Bardeldoo", "Lakenator" ]
+    Mach10 = ["Locked in baseme...", "norf", bry, "Bardeldoo", "Lakenator" ]
     MTG = ["Nitro", "KingKofi", "PinzoDunzo", smegatron, "Chicken"]
     Mythic = ["TekkenKid12", "gratty", "Appie", "Toasty", "Cure"]
     # Primal = ["Sneakz", "Mav", "Sei", "xehe", "CoLdskis"] #Primal with CoLdskis
@@ -39,15 +39,15 @@ def main():
 
     # Roles = ["offlane", "jungle", "midlane", "support", "carry"]
 
-    # OC.LAN_team_stats(Flowstate)
-    # OC.LAN_team_stats(Hive)
-    # OC.LAN_team_stats(Immune)
+    OC.LAN_team_stats(Flowstate)
+    OC.LAN_team_stats(Hive)
+    OC.LAN_team_stats(Immune)
     OC.LAN_team_stats(Mach10)
-    # OC.LAN_team_stats(MTG)
-    # OC.LAN_team_stats(Mythic)
-    # OC.LAN_team_stats(Primal)
-    # OC.LAN_team_stats(Profs)
-    # OC.LAN_team_stats(Rogue)
-    # OC.LAN_team_stats(Sin)
+    OC.LAN_team_stats(MTG)
+    OC.LAN_team_stats(Mythic)
+    OC.LAN_team_stats(Primal)
+    OC.LAN_team_stats(Profs)
+    OC.LAN_team_stats(Rogue)
+    OC.LAN_team_stats(Sin)
     
 main()
