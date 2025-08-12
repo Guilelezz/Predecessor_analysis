@@ -30,7 +30,7 @@ def main():
     MTG = ["Nitro", "KingKofi", "PinzoDunzo", smegatron, "Chicken"]
     Mythic = ["TekkenKid12", "gratty", "Appie", "Toasty", "Cure"]
     # Primal = ["Sneakz", "Mav", "Sei", "xehe", "CoLdskis"] #Primal with CoLdskis
-    Primal = ["Sneakz", "Mav", "Sei", "xehe", "Knapz"] #Primal with Knapz
+    Primal = ["SneakzOnLan", "Mav", "Sei", "xehe", "Knapz"] #Primal with Knapz
     Profs = [profficiency, "Creed", "SoulRe4p3r", "Crazzyfool", "SURVIVORTV"]
     Sin = ["M", "import", "Shynn", "Rei", "TwoHands"]
     Rogue = ["STSButters", "Warpz", "Phox", "Wangle", "Haru"]
@@ -39,15 +39,15 @@ def main():
 
     # Roles = ["offlane", "jungle", "midlane", "support", "carry"]
 
-    OC.LAN_team_stats(Flowstate)
-    OC.LAN_team_stats(Hive)
+    # OC.LAN_team_stats(Flowstate)
+    # OC.LAN_team_stats(Hive)
     OC.LAN_team_stats(Immune)
-    OC.LAN_team_stats(Mach10)
-    OC.LAN_team_stats(MTG)
-    OC.LAN_team_stats(Mythic)
-    OC.LAN_team_stats(Primal)
-    OC.LAN_team_stats(Profs)
-    OC.LAN_team_stats(Rogue)
-    OC.LAN_team_stats(Sin)
+    # OC.LAN_team_stats(Mach10)
+    # OC.LAN_team_stats(MTG)
+    # OC.LAN_team_stats(Mythic)
+    # OC.LAN_team_stats(Primal)
+    # OC.LAN_team_stats(Profs)
+    # OC.LAN_team_stats(Rogue)
+    # OC.LAN_team_stats(Sin)
     
 main()

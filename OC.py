@@ -559,7 +559,6 @@ def team_gold_leads_tf(Team, role, enemy = None):
         else:
             player_list[Team[i]] = get_gold(Team[i], role[i])
 
-
     # print(player_list)
 
     games = [0]*len(Team)
@@ -747,7 +746,7 @@ def LAN_team_stats(Team):
                         player["hero"] = "Zarus"
                     elif player["hero"] == "Bright":
                         player["hero"] = "Renna"
-                    elif player["hero"] == "Tideinder":
+                    elif player["hero"] == "Tidebinder":
                         player["hero"] = "Yurei"
                     elif player["hero"] == "Boost":
                         player["hero"] = "Skylar"
@@ -761,7 +760,6 @@ def LAN_team_stats(Team):
                         player["hero"] = "GRIM.exe"
                     
                     for individual_hero in heroes:
-
                         # print("Player hero: " +str(player_hero) +str(" Hero: ")+str(heroes[individual_hero]))
                         if player["hero"] == heroes[individual_hero]:
                             hero_id = individual_hero
@@ -907,7 +905,7 @@ def LAN_team_stats(Team):
 
     LAN_to_excel()
 
-    # plot_team_stats(team_stats,wteam_stats,lteam_stats)
+    plot_team_stats(team_stats,wteam_stats,lteam_stats)
 
 def LAN_to_excel():
     # Load the JSON data
@@ -1120,6 +1118,8 @@ def get_customgames_from_file():
     # Save or print the result
     with open("internal_games/custom_games_extracted.json", "w", encoding="utf-8") as f:
         json.dump(custom_games, f, indent=2)
+
+get_customgames_from_file()
 
 # data = get_data("Locked in baseme...")
 # i = 0
